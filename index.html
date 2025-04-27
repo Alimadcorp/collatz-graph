@@ -16,15 +16,12 @@
 		  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 		  overflow: hidden;
 		}
-
 		canvas {
 		  display: block;
 		}
-
 		body {
 		  display: flex;
 		}
-
 		#panel {
 		  background: #161616;
 		  padding: 24px;
@@ -34,13 +31,11 @@
 		  gap: 16px;
 		  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
 		}
-
 		main {
 		  flex: 1;
 		  width: calc(100vw - 200px);
 		  position: relative;
 		}
-
 		#start-btn {
 		  background: #2a2aff;
 		  color: #fff;
@@ -51,11 +46,9 @@
 		  cursor: pointer;
 		  transition: background 0.3s;
 		}
-
 		#start-btn:hover {
 		  background: #5555ff;
 		}
-
 		#n-slider {
 		  -webkit-appearance: none;
 		  width: 100%;
@@ -65,7 +58,6 @@
 		  outline: none;
 		  transition: background 0.3s;
 		}
-
 		#n-slider::-webkit-slider-thumb {
 		  -webkit-appearance: none;
 		  appearance: none;
@@ -77,12 +69,10 @@
 		  cursor: pointer;
 		  transition: background 0.2s, transform 0.2s;
 		}
-
 		#n-slider::-webkit-slider-thumb:hover {
 		  background: #cce5ff;
 		  transform: scale(1.2);
 		}
-
 		#n-slider::-moz-range-thumb {
 		  width: 20px;
 		  height: 20px;
@@ -92,17 +82,14 @@
 		  cursor: pointer;
 		  transition: background 0.2s, transform 0.2s;
 		}
-
 		#n-slider::-moz-range-thumb:hover {
 		  background: #cce5ff;
 		  transform: scale(1.2);
 		}
-
 		.label {
 		  font-size: 0.9rem;
 		  color: #aaa;
 		}
-
 		#stats {
 		  font-size: 0.85rem;
 		  background: #202020;
@@ -112,7 +99,6 @@
 		  flex-direction: column;
 		  gap: 4px;
 		}
-
 		#history {
 		  flex: 1;
 		  overflow-y: auto;
@@ -131,7 +117,7 @@
   <body>
     <div id="panel">
       <label class="label" for="n-input">Starting Numbers</label>
-      <input type="number" min="2" max="900719925474099" id="n-input" placeholder="e.g. 27,45,99" />
+      <input type="text" id="n-input" placeholder="e.g. 27,45,99" />
       <button id="start-btn">Start</button>
       <div class="label">Stats:</div>
       <div id="stats">
@@ -155,9 +141,8 @@
 		let finishedGraphs = [];
 		let bgGraphics;
 		let sF = 1;
-
 		function setup() {
-		  document.getElementById("n-input").value = localStorage.getItem("lv") || "";
+		  document.getElementById("n-input").value = localStorage.getItem("lv") || "27";
 		  createCanvas(windowWidth - 200, windowHeight);
 		  bgGraphics = createGraphics(windowWidth, windowHeight);
 		  sF = 400 / 400;
@@ -165,13 +150,14 @@
 		  textFont("monospace");
 		  select("#start-btn").mousePressed(startSimulation);
 		}
-
 		function startSimulation() {
 		  let inputs = select("#n-input")
 			.value()
 			.split(",")
 			.map((x) => parseInt(x.trim()))
-			.filter((x) => !isNaN(x));
+			.filter((x) => x && x != undefined)
+			.filter((x) => !isNaN(x))
+			.filter((x) => x > 1);
 		  for (let n of inputs) addGraph(n);
 		  localStorage.setItem("lv", select("#n-input").value());
 		}
@@ -184,7 +170,6 @@
 			  }
 			}
 		  }
-
 		  activeGraphs.push({
 			start: startN,
 			values: [startN],
@@ -194,7 +179,6 @@
 			color: color(random(100, 255), random(100, 255), random(100, 255)),
 			startTime: millis()
 		  });
-
 		  if (!fromHistory) {
 			let graph = activeGraphs[activeGraphs.length - 1];
 			let hist = createDiv(startN + " (" + 0 + " steps)").parent("history");
@@ -210,13 +194,10 @@
 			select("#history").elt.prepend(hist.elt);
 		  }
 		}
-
-
 		function draw() {
 		  background(10);
 		  image(bgGraphics, 0, 0);
 		  drawGrid();
-
 		  for (let i = activeGraphs.length - 1; i >= 0; i--) {
 			let graph = activeGraphs[i];
 			if (!graph.done) {
@@ -246,7 +227,6 @@
 			}
 		  }
 		}
-
 		function drawGraph(graph) {
 		  let vals = graph.values;
 		  stroke(graph.color);
@@ -259,38 +239,28 @@
 			vertex(x, y);
 		  }
 		  endShape();
-
 		  let x = map(vals.length - 1, 0, vals.length, 80, width - 20);
 		  let y = map(vals[vals.length - 1], 0, graph.max * 1.1, height - 20, 20);
 		  fill(graph.color);
 		  noStroke();
 		  circle(x, y, 10 * sF);
-
 		  fill(255);
 		  textAlign(LEFT, CENTER);
 		  text(vals[vals.length - 1], x + 10, y);
-
-		  // Draw the starting number at the left
 		  let startY = map(graph.start, 0, graph.max * 1.1, height - 20, 20);
 		  fill(graph.color);
 		  noStroke();
 		  textSize(14);
 		  text(graph.start, 20, startY);
 		}
-
 		function moveGraphToBackground(graph) {
 		  let vals = graph.values;
 		  if (!graph.color) {
 			graph.color = color(random(100, 255), random(100, 255), random(100, 255));
-		  }else{
-			graph.color.setAlpha(100);
-		  }
+		  } else { graph.color.setAlpha(100); }
 		  bgGraphics.stroke(
 			graph.color
 		  );
-		  console.log('hi')
-		  console.log(graph.color);
-
 		  bgGraphics.noFill();
 		  bgGraphics.strokeWeight(2);
 		  for (let i = 0; i < vals.length - 1; i++) {
@@ -300,33 +270,27 @@
 			let y2 = map(vals[i + 1], 0, graph.max * 1.1, height - 20, 20);
 			bgGraphics.line(x1, y1, x2, y2);
 		  }
-
 		  let x = map(vals.length - 1, 0, vals.length, 80, width - 20);
 		  let y = map(vals[vals.length - 1], 0, graph.max * 1.1, height - 20, 20);
 		  bgGraphics.fill(
 			graph.color
 		  );
-
 		  bgGraphics.noStroke();
 		  bgGraphics.circle(x, y, 10 * sF);
 		  bgGraphics.fill(
 			graph.color
 		  );
-
 		  bgGraphics.textAlign(LEFT, CENTER);
 		  bgGraphics.textSize(16);
 		  bgGraphics.text(vals[vals.length - 1], x + 10, y);
-
 		  let startY = map(graph.start, 0, graph.max * 1.1, height - 20, 20);
 		  bgGraphics.fill(
 			graph.color
 		  );
-
 		  bgGraphics.noStroke();
 		  bgGraphics.textSize(14);
 		  bgGraphics.text(graph.start, 20, startY);
 		}
-
 		function drawGrid() {
 		  stroke(30);
 		  strokeWeight(1);
@@ -337,7 +301,6 @@
 			line(0, j, width, j);
 		  }
 		}
-
 		function updateStats(graph) {
 		  select("#stat-max").html(graph.max);
 		  select("#stat-steps").html(graph.values.length - 1);
